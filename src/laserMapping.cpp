@@ -296,6 +296,7 @@ void process()
 			t_wodom_curr.z() = odometryBuf.front()->pose.pose.position.z;
 			odometryBuf.pop();
 
+			// 为啥不一块都给 pop 了呢
 			while(!cornerLastBuf.empty())
 			{
 				cornerLastBuf.pop();
@@ -555,6 +556,7 @@ void process()
 			{
 				TicToc t_opt;
 				TicToc t_tree;
+				// 最花时间的
 				kdtreeCornerFromMap->setInputCloud(laserCloudCornerFromMap);
 				kdtreeSurfFromMap->setInputCloud(laserCloudSurfFromMap);
 				printf("build tree time %f ms \n", t_tree.toc());
@@ -784,6 +786,7 @@ void process()
 			printf("add points time %f ms\n", t_add.toc());
 
 			
+			// 这也挺花时间的
 			TicToc t_filter;
 			for (int i = 0; i < laserCloudValidNum; i++)
 			{
@@ -888,7 +891,7 @@ void process()
 			frameCount++;
 		}
 		std::chrono::milliseconds dura(2);
-        std::this_thread::sleep_for(dura);
+		std::this_thread::sleep_for(dura);
 	}
 }
 

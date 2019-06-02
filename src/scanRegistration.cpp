@@ -175,7 +175,6 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
                 continue;
             }
         }
-
         else if (N_SCANS == 64)
         {   
             if (angle >= -8.83)
@@ -198,7 +197,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
             printf("wrong scan number\n");
             ROS_BREAK();
         }
-        //printf("angle %f scanID %d \n", angle, scanID);
+        // printf("angle %f scanID %d \n", angle, scanID);
 
         float ori = -atan2(point.y, point.x);
         if (!halfPassed)
@@ -246,7 +245,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
         scanEndInd[i] = laserCloud->size() - 6;
     }
 
-    printf("prepare time %f \n", t_prepare.toc());
+    printf("prepare time %f ms\n", t_prepare.toc());
 
     for (int i = 5; i < cloudSize - 5; i++)
     { 
@@ -268,6 +267,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
     pcl::PointCloud<PointType> surfPointsFlat;
     pcl::PointCloud<PointType> surfPointsLessFlat;
 
+    // 缺少论文中的 markOccludedPoints 过程
     float t_q_sort = 0;
     for (int i = 0; i < N_SCANS; i++)
     {
@@ -346,15 +346,14 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
                 if (cloudNeighborPicked[ind] == 0 &&
                     cloudCurvature[ind] < 0.1)
                 {
-
-                    cloudLabel[ind] = -1; 
-                    surfPointsFlat.push_back(laserCloud->points[ind]);
-
                     smallestPickedNum++;
-                    if (smallestPickedNum >= 4)
+                    if (smallestPickedNum > 4)
                     { 
                         break;
                     }
+
+                    cloudLabel[ind] = -1; 
+                    surfPointsFlat.push_back(laserCloud->points[ind]);
 
                     cloudNeighborPicked[ind] = 1;
                     for (int l = 1; l <= 5; l++)
@@ -401,8 +400,8 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg)
 
         surfPointsLessFlat += surfPointsLessFlatScanDS;
     }
-    printf("sort q time %f \n", t_q_sort);
-    printf("seperate points time %f \n", t_pts.toc());
+    printf("sort q time %f ms\n", t_q_sort);
+    printf("seperate points time %f ms\n", t_pts.toc());
 
 
     sensor_msgs::PointCloud2 laserCloudOutMsg;

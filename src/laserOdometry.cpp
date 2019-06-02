@@ -56,7 +56,7 @@
 #include "aloam_velodyne/tic_toc.h"
 #include "lidarFactor.hpp"
 
-#define DISTORTION 0
+#define DISTORTION 1
 
 
 int corner_correspondence = 0, plane_correspondence = 0;
@@ -190,6 +190,7 @@ int main(int argc, char **argv)
 
     nh.param<int>("mapping_skip_frame", skipFrameNum, 2);
 
+    // 默认是 10Hz 的原始数据
     printf("Mapping %d Hz \n", 10 / skipFrameNum);
 
     ros::Subscriber subCornerPointsSharp = nh.subscribe<sensor_msgs::PointCloud2>("/laser_cloud_sharp", 100, laserCloudSharpHandler);
@@ -360,6 +361,7 @@ int main(int argc, char **argv)
                                 }
                             }
                         }
+
                         if (minPointInd2 >= 0) // both closestPointInd and minPointInd2 is valid
                         {
                             Eigen::Vector3d curr_point(cornerPointsSharp->points[i].x,
@@ -413,6 +415,7 @@ int main(int argc, char **argv)
                                                         (laserCloudSurfLast->points[j].z - pointSel.z);
 
                                 // if in the same or lower scan line
+                                // can't be lower
                                 if (int(laserCloudSurfLast->points[j].intensity) <= closestPointScanID && pointSqDis < minPointSqDis2)
                                 {
                                     minPointSqDis2 = pointSqDis;
@@ -441,6 +444,7 @@ int main(int argc, char **argv)
                                                         (laserCloudSurfLast->points[j].z - pointSel.z);
 
                                 // if in the same or higher scan line
+                                // can't be higher
                                 if (int(laserCloudSurfLast->points[j].intensity) >= closestPointScanID && pointSqDis < minPointSqDis2)
                                 {
                                     minPointSqDis2 = pointSqDis;
@@ -482,7 +486,7 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    //printf("coner_correspondance %d, plane_correspondence %d \n", corner_correspondence, plane_correspondence);
+                    printf("coner_correspondance %d, plane_correspondence %d \n", corner_correspondence, plane_correspondence);
                     printf("data association time %f ms \n", t_data.toc());
 
                     if ((corner_correspondence + plane_correspondence) < 10)
@@ -562,10 +566,14 @@ int main(int argc, char **argv)
             laserCloudCornerLastNum = laserCloudCornerLast->points.size();
             laserCloudSurfLastNum = laserCloudSurfLast->points.size();
 
-            // std::cout << "the size of corner last is " << laserCloudCornerLastNum << ", and the size of surf last is " << laserCloudSurfLastNum << '\n';
+            std::cout << "the size of corner last is " << laserCloudCornerLastNum << ", and the size of surf last is " << laserCloudSurfLastNum << '\n';
 
             kdtreeCornerLast->setInputCloud(laserCloudCornerLast);
             kdtreeSurfLast->setInputCloud(laserCloudSurfLast);
+            std::cout << t_last_curr << std::endl;
+            std::cout << q_last_curr.toRotationMatrix() << std::endl;
+            // t_last_curr.setZero();
+            // q_last_curr.setIdentity();
 
             if (frameCount % skipFrameNum == 0)
             {
